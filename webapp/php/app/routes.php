@@ -290,7 +290,8 @@ return function (App $app) {
 
         $query = 'SELECT * FROM chair WHERE id = :id';
         $stmt = $this->get(PDO::class)->prepare($query);
-        $stmt->execute([':id' => $id]);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
         $chair = $stmt->fetchObject(Chair::class);
 
         if (!$chair) {
@@ -555,7 +556,8 @@ return function (App $app) {
 
         $query = 'SELECT * FROM estate WHERE id = :id';
         $stmt = $this->get(PDO::class)->prepare($query);
-        $stmt->execute([':id' => $id]);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
         $estate = $stmt->fetchObject(Estate::class);
 
         if (!$estate) {
@@ -630,9 +632,10 @@ return function (App $app) {
             return $response->withStatus(StatusCodeInterface::STATUS_BAD_REQUEST);
         }
 
-        $query = 'SELECT * FROM chair WHERE id = ?';
+        $query = 'SELECT * FROM chair WHERE id = :id';
         $stmt = $this->get(PDO::class)->prepare($query);
-        $stmt->execute([$id]);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
         $chair = $stmt->fetchObject(Chair::class);
 
         if (!$chair) {
