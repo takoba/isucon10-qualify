@@ -19,9 +19,25 @@ http {
 
     access_log  /var/log/nginx/access.log  main;
 
+    map $http_user_agent $bot {
+        default 0;
+        "~ISUCONbot" 1;
+        "~Mediapartners-ISUCON" 1;
+        "~ISUCONCoffee" 1;
+        "~ISUCONFeedSeeker" 1;
+        "~crawler \(https://isucon\.invalid/(support/faq/|help/jp/)" 1;
+        "~isubot" 1;
+        "~Isupider" 1;
+        "~*(bot|crawler|spider)(?:[-_ .\/;@()]|$)" 1;
+    }
+
     server {
         listen 80 default_server;
         listen [::]:80 default_server;
+
+        if ($bot = 1) {
+                return 503;
+        }
 
         location /api {
                 proxy_pass http://${API_SERVER}:1323;
