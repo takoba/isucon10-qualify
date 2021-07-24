@@ -379,24 +379,28 @@ return function (App $app) {
         try {
             $pdo->beginTransaction();
 
-            foreach ($records as $record) {
-                $query = 'INSERT INTO estate VALUES(:id, :name, :description, :thumbnail, :address, :latitude, :longitude, :rent, :door_height, :door_width, :features, :popularity)';
-                $stmt = $pdo->prepare($query);
-                $stmt->execute([
-                    'id' => (int)trim($record[0] ?? null),
-                    'name' => trim($record[1] ?? null),
-                    'description' => trim($record[2] ?? null),
-                    'thumbnail' => trim($record[3] ?? null),
-                    'address' => trim($record[4] ?? null),
-                    'latitude' => (float)trim($record[5] ?? null),
-                    'longitude' => (float)trim($record[6] ?? null),
-                    'rent' => (int)trim($record[7] ?? null),
-                    'door_height' => (int)trim($record[8] ?? null),
-                    'door_width' => (int)trim($record[9] ?? null),
-                    'features' => trim($record[10] ?? null),
-                    'popularity' => (int)trim($record[11] ?? null),
-                ]);
+            $params = [];
+            $valuesStmts = [];
+            foreach ($records as $i => $record) {
+                $valuesStmts[] = "(:id{$i}, :name{$i}, :description{$i}, :thumbnail{$i}, :address{$i}, :latitude{$i}, :longitude{$i}, :rent{$i}, :door_height{$i}, :door_width{$i}, :features{$i}, :popularity{$i})";
+                $params = $params + [
+                    "id{$i}"          => (int)trim($record[0] ?? null),
+                    "name{$i}"        => trim($record[1] ?? null),
+                    "description{$i}" => trim($record[2] ?? null),
+                    "thumbnail{$i}"   => trim($record[3] ?? null),
+                    "address{$i}"     => trim($record[4] ?? null),
+                    "latitude{$i}"    => (float)trim($record[5] ?? null),
+                    "longitude{$i}"   => (float)trim($record[6] ?? null),
+                    "rent{$i}"        => (int)trim($record[7] ?? null),
+                    "door_height{$i}" => (int)trim($record[8] ?? null),
+                    "door_width{$i}"  => (int)trim($record[9] ?? null),
+                    "features{$i}"    => trim($record[10] ?? null),
+                    "popularity{$i}"  => (int)trim($record[11] ?? null),
+                ];
             }
+            $query = 'INSERT INTO estate VALUES ' . implode(',', $valuesStmts);
+            $stmt = $pdo->prepare($query);
+            $stmt->execute($params);
 
             $pdo->commit();
         } catch (PDOException $e) {
