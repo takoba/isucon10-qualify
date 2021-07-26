@@ -17,7 +17,7 @@ dependencies:
 	type composer > /dev/null
 
 run:
-	php -S 0.0.0.0:$(PORT) -t public public/index.php
+	php-fpm
 
 vendor:
 	composer install

@@ -27,6 +27,7 @@ services:
     volumes:
       - ../mysql/db:/mysql/db
       - ../fixture:/fixture
+      - ../../provisioning/ansible/roles/web-php/files/isuumo.php-fpm.conf:/usr/local/etc/php-fpm.d/isuumo.conf
       - ../php:/php
     environment:
       MYSQL_DBNAME: isuumo
@@ -54,12 +55,12 @@ services:
         - ../nginx/out:/www/data
     ports:
       - "8080:80"
-    entrypoint:
-      - dockerize
-      - -timeout
-      - 60s
-      - -wait
-      - http://api-server:1323/api/estate/search/condition
+        #    entrypoint:
+        #      - dockerize
+        #      - -timeout
+        #      - 60s
+        #      - -wait
+        #      - http://api-server:1323/api/estate/search/condition
     environment:
       API_SERVER: api-server
     depends_on:

@@ -39,19 +39,36 @@ http {
                 return 503;
         }
 
+        root /php/public;
+
         location /api {
-                proxy_pass http://${API_SERVER}:1323;
+                try_files $uri $uri/ /index.php?$query_string;
+                index index.php;
         }
 
         location /initialize {
-                proxy_pass http://${API_SERVER}:1323;
+                try_files $uri $uri/ /index.php?$query_string;
+                index index.php;
+        }
+
+        location ~ \.php$ {
+                fastcgi_pass ${API_SERVER}:1323;
+                fastcgi_index index.php;
+                include fastcgi_params;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                fastcgi_param PATH_INFO $fastcgi_path_info;
+                fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
+
+                add_header $fastcgi_path_info $fastcgi_path_info;
+                add_header $document_root $document_root;
+                add_header $fastcgi_script_name $fastcgi_script_name;
+                add_header $request_filename $request_filename;
         }
 
         location / {
                 root /www/data;
         }
     }
-
 
     sendfile        on;
     #tcp_nopush     on;
