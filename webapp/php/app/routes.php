@@ -584,7 +584,11 @@ return function (App $app) {
 
         $boundingBox = BoundingBox::createFromCordinates($coordinates);
 
-        $query = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? ORDER BY popularity DESC, id ASC';
+        $query = sprintf(
+            'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? AND ST_Contains(ST_PolygonFromText(%s), POINT(latitude, longitude)) ORDER BY popularity DESC, id ASC',
+            Coordinate::toText($coordinates)
+        );
+
         $stmt = $this->get(PDO::class)->prepare($query);
         $stmt->execute([
             $boundingBox->bottomRightCorner->latitude,
@@ -592,19 +596,7 @@ return function (App $app) {
             $boundingBox->bottomRightCorner->longitude,
             $boundingBox->topLeftCorner->longitude,
         ]);
-        $estatesInBoundingBox = $stmt->fetchAll(PDO::FETCH_CLASS, Estate::class);
-
-        $estatesInPolygon = Array();
-        foreach ($estatesInBoundingBox as $estate) {
-            $point = sprintf("'POINT(%f %f)'", $estate->latitude, $estate->longitude);
-            $query = sprintf('SELECT * FROM estate WHERE id = ? AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))', Coordinate::toText($coordinates), $point);
-            $stmt = $this->get(PDO::class)->prepare($query);
-            $stmt->execute([$estate->id]);
-            $e = $stmt->fetchObject(Estate::class);
-            if ($e) {
-                array_push($estatesInPolygon, $e);
-            }
-        }
+        $estatesInPolygon = $stmt->fetchAll(PDO::FETCH_CLASS, Estate::class);
 
         if (count($estatesInPolygon) > NUM_NAZOTTE_LIMIT) {
             $estatesInPolygon = array_slice($estatesInPolygon, 0, NUM_NAZOTTE_LIMIT);
